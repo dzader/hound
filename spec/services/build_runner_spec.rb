@@ -13,8 +13,6 @@ describe BuildRunner do
         )
         build_runner = BuildRunner.new(payload)
         stubbed_style_checker(violations: [build(:violation)])
-        stubbed_commenter
-        stubbed_pull_request
         stubbed_github_api
 
         build_runner.run
@@ -30,14 +28,12 @@ describe BuildRunner do
       end
 
       it "initializes PullRequest with payload and Hound token" do
-        repo = create(:repo, :active)
         user = create(:user, token: "user_token")
-        user.repos << repo
+        repo = create(:repo, :active, users: [user])
         payload = stubbed_payload(github_repo_id: repo.github_id)
         build_runner = BuildRunner.new(payload)
         stubbed_pull_request
         stubbed_style_checker(violations: [build(:violation)])
-        stubbed_commenter
         stubbed_github_api
 
         build_runner.run
@@ -54,13 +50,11 @@ describe BuildRunner do
           head_sha: "headsha",
         )
         build_runner = BuildRunner.new(payload)
-        stubbed_pull_request
         violations = [
           build(:violation),
           build(:violation, messages: ["wrong", "bad"]),
         ]
         stubbed_style_checker(violations: violations)
-        stubbed_commenter
         github_api = stubbed_github_api
 
         build_runner.run
@@ -82,9 +76,7 @@ describe BuildRunner do
           repository_owner_is_organization?: true,
         )
         build_runner = BuildRunner.new(payload)
-        stubbed_pull_request
         stubbed_style_checker(violations: [build(:violation)])
-        stubbed_commenter
         stubbed_github_api
 
         build_runner.run
@@ -134,7 +126,6 @@ describe BuildRunner do
         )
         build_runner = BuildRunner.new(payload)
         stubbed_style_checker(violations: [build(:violation)])
-        stubbed_commenter
         stubbed_pull_request
         stubbed_github_api
 
@@ -158,7 +149,6 @@ describe BuildRunner do
         )
         invalid_config_file(pull_request, "config/rubocop.yml" => "!")
         github_api = stubbed_github_api
-        stubbed_commenter
 
         build_runner.run
 
@@ -237,13 +227,6 @@ describe BuildRunner do
       end.and_return(style_checker)
 
       style_checker
-    end
-
-    def stubbed_commenter
-      commenter = double(:commenter).as_null_object
-      allow(Commenter).to receive(:new).and_return(commenter)
-
-      commenter
     end
 
     def stubbed_pull_request(files = [double("CommitFile")])

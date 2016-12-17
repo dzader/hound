@@ -1,6 +1,5 @@
 # Hold file, line number, and violation message values.
 # Built by style guides.
-# Printed by Commenter.
 class Violation < ActiveRecord::Base
   belongs_to :file_review
 

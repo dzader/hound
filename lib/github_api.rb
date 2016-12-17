@@ -1,9 +1,11 @@
+# frozen_string_literal: true
 require "attr_extras"
 require "octokit"
 require "base64"
 
 class GithubApi
-  ORGANIZATION_TYPE = "Organization".freeze
+  ORGANIZATION_TYPE = "Organization"
+  PREVIEW_API_HEADER = "application/vnd.github.black-cat-preview+json"
 
   attr_reader :file_cache, :token
 
@@ -13,7 +15,11 @@ class GithubApi
   end
 
   def client
-    @client ||= Octokit::Client.new(access_token: token, auto_paginate: true)
+    @client ||= Octokit::Client.new(
+      access_token: token,
+      auto_paginate: true,
+      accept: PREVIEW_API_HEADER,
+    )
   end
 
   def scopes
@@ -72,6 +78,11 @@ class GithubApi
       options[:filename],
       options[:patch_position],
     )
+  end
+
+  def create_pull_request_review(repo_name, pr_number, comments)
+    url = "#{Octokit::Repository.path(repo_name)}/pulls/#{pr_number}/reviews"
+    client.post(url, event: "COMMENT", comments: comments)
   end
 
   def pull_request_files(full_repo_name, number)

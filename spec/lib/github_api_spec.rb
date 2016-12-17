@@ -48,7 +48,8 @@ describe GithubApi do
         expect(same_contents).to eq contents
         expect(Octokit::Client).to have_received(:new).with(
           access_token: token,
-          auto_paginate: true
+          auto_paginate: true,
+          accept: GithubApi::PREVIEW_API_HEADER,
         )
         expect(client).to have_received(:contents).with(
           repo,

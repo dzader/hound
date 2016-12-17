@@ -15,8 +15,6 @@ RSpec.describe "POST /builds" do
       filename = "spec/models/style_guide_spec.rb"
       existing_comment_violation = { line: 5, message: "Line is too long." }
       new_violation = { line: 9, message: "Trailing whitespace detected." }
-      comment_id_from_fixture = 12195842
-      commit_id_from_fixture = "498b81cd038f8a3ac02f035a8537b7ddcff38a81"
       violations = [existing_comment_violation, new_violation]
       create(:repo, :active, github_id: repo_id, name: repo_name)
       stub_github_requests_with_violations(filename: filename)
@@ -28,15 +26,14 @@ RSpec.describe "POST /builds" do
       )
       stub_status_requests(repo_name, pr_sha)
       stub_review_job(RubocopReviewJob, violations: violations)
-      new_comment_request = stub_comment_with_violation_request(
-        violation: new_violation,
+      review_request = stub_review_request(
+        violations: [new_violation],
         file_path: filename,
-        commit_id: commit_id_from_fixture,
       )
 
       post builds_path, payload: payload
 
-      expect(new_comment_request).to have_been_requested
+      expect(review_request).to have_been_requested
     end
   end
 
@@ -44,11 +41,11 @@ RSpec.describe "POST /builds" do
     it "does not make a comment" do
       create(:repo, github_id: repo_id, name: repo_name)
       stub_github_requests_with_no_violations
-      comment_request = stub_new_comment_request
+      review_request = stub_review_request
 
       post builds_path, payload: payload
 
-      expect(comment_request).not_to have_been_requested
+      expect(review_request).not_to have_been_requested
     end
   end
 
@@ -84,21 +81,13 @@ RSpec.describe "POST /builds" do
     )
   end
 
-  def stub_new_comment_request
-    stub_request(
-      :post,
-      "https://api.github.com/repos/#{repo_name}/pulls/#{pr_number}/comments",
-    )
-  end
-
-  def stub_comment_with_violation_request(violation:, file_path:, commit_id:)
-    comment = {
-      body: violation[:message],
-      commit_id: commit_id,
-      path: file_path,
-      position: violation[:line],
-    }
-    stub_new_comment_request.with(body: comment.to_json)
+  def stub_review_request(violations: [], file_path: "foo/bar.rb")
+    url = "https://api.github.com/repos/#{repo_name}/pulls/#{pr_number}/reviews"
+    comments = violations.map do |violation|
+      { path: file_path, position: violation[:line], body: violation[:message] }
+    end
+    stub_request(:post, url).
+      with(body: { event: "COMMENT", comments: comments }.to_json)
   end
 
   def stub_review_job(klass, violations:)
