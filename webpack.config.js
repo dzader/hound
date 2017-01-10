@@ -38,15 +38,14 @@ if (isProd) {
       },
       output: {
         comments: false
-      },
-      sourceMap: false,
+      }
     })
   );
 }
 
 module.exports = {
   context: __dirname,
-  devtool: isProd ? 'hidden-source-map' : 'cheap-module-eval-source-map',
+  devtool: isProd ? false : 'cheap-module-eval-source-map',
   entry: {
     vendor: [
       'babel-polyfill',
