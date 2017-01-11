@@ -58,6 +58,7 @@ module.exports = {
       'react',
       'es5-shim/es5-shim',
       'es5-shim/es5-sham',
+      'lodash'
     ],
     app: [
       './app/assets/javascripts/components.jsx',
