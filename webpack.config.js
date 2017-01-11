@@ -36,16 +36,18 @@ if (isProd) {
         if_return: true,
         join_vars: true,
       },
+      mangle: false, // mangling would reduce the bundle's size, but it also makes it not work!
       output: {
         comments: false
-      }
+      },
+      sourceMap: false
     })
   );
 }
 
 module.exports = {
   context: __dirname,
-  devtool: isProd ? false : 'cheap-module-eval-source-map',
+  devtool: isProd ? false : 'inline-source-map',
   entry: {
     vendor: [
       'babel-polyfill',
