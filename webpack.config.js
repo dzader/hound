@@ -36,7 +36,10 @@ if (isProd) {
         if_return: true,
         join_vars: true,
       },
-      mangle: false, // mangling would reduce the bundle's size, but it also makes it not work!
+      // Mangling would reduce the size of the bundle, but it made the deploys
+      // crash on Heroku. The reason is yet unknown.
+      // So, in lieu of that - let's disable it.
+      mangle: false,
       output: {
         comments: false
       },
